@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use App\Models\Transaction;
 
 
@@ -57,6 +58,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'name' => 'required',
             'description' => 'nullable',
@@ -71,15 +73,35 @@ class ProductController extends Controller
             $imagePath = $request->file('image')->store('products', 'public');
         }
 
-        Product::create([
+        $price = (int) $request->price;
+        $stock = (int) $request->stock;
+        $category_id = (int) $request->category_id;
+
+        $data = [
             'name' => $request->name,
             'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
+            'price' => $price,
+            'stock' => $stock,
             'seller_id' => Auth::id(),
-            'category_id' => $request->category_id,
+            'category_id' => $category_id,
             'image' => $imagePath,
-        ]);
+        ];
+
+        $response = Http::post('http://localhost:8080/products', $data);
+
+        // Buat Testing
+
+        // if ($response->successful()) {
+        //     $result = $response->json();
+        //     dd($result);
+        // } else {
+        //     dd([
+        //         'url' => 'http://localhost:8080/products',
+        //         'data' => $data,
+        //         'response' => $response->body(),
+        //         'status' => $response->status(),
+        //     ]);
+        // }
 
         return redirect()->route('products.index');
     }
